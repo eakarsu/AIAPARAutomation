@@ -40,9 +40,9 @@ export default function Contacts({ token }) {
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
   const fetchItems = async () => {
-    const res = await fetch('/api/contacts', { headers });
+    const res = await fetch('/api/contacts?limit=200', { headers });
     const data = await res.json();
-    setItems(data);
+    setItems(data.data || data);
   };
 
   useEffect(() => { fetchItems(); }, []);

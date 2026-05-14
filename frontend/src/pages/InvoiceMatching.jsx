@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import DetailModal from '../components/DetailModal';
 import FormModal from '../components/FormModal';
 import AIResultDisplay from '../components/AIResultDisplay';
+import PaginationControl from '../components/PaginationControl';
 
 const detailFields = [
   { key: 'invoice_number', label: 'Invoice Number' },
@@ -34,6 +35,8 @@ const formFields = [
 export default function InvoiceMatching({ token }) {
   const [items, setItems] = useState([]);
   const [filtered, setFiltered] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -44,41 +47,46 @@ export default function InvoiceMatching({ token }) {
   const [selected, setSelected] = useState(new Set());
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
-  const fetchItems = async () => {
-    const res = await fetch('/api/invoices', { headers });
-    setItems(await res.json());
+  const fetchItems = async (p = page) => {
+    const params = new URLSearchParams({ page: p, limit: 20 });
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (search) params.set('vendor', search);
+    const res = await fetch(`/api/invoices?${params}`, { headers });
+    const data = await res.json();
+    setItems(data.data || data);
+    if (data.pagination) setPagination(data.pagination);
   };
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => { fetchItems(page); }, [page, statusFilter]);
 
   useEffect(() => {
+    // client-side search on current page results when status filter is applied server-side
     let result = items;
-    if (search) {
+    if (search && statusFilter !== 'all') {
       const s = search.toLowerCase();
-      result = result.filter(i => i.invoice_number.toLowerCase().includes(s) || i.vendor_name.toLowerCase().includes(s));
+      result = result.filter(i => (i.invoice_number || '').toLowerCase().includes(s) || (i.vendor_name || '').toLowerCase().includes(s));
     }
-    if (statusFilter !== 'all') result = result.filter(i => i.match_status === statusFilter);
     setFiltered(result);
   }, [items, search, statusFilter]);
 
   const handleCreate = async (data) => {
     await fetch('/api/invoices', { method: 'POST', headers, body: JSON.stringify(data) });
     setShowForm(false);
-    fetchItems();
+    fetchItems(page);
   };
 
   const handleUpdate = async (data) => {
     await fetch(`/api/invoices/${data.id}`, { method: 'PUT', headers, body: JSON.stringify(data) });
     setEditItem(null);
     setSelectedItem(null);
-    fetchItems();
+    fetchItems(page);
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this invoice?')) return;
     await fetch(`/api/invoices/${id}`, { method: 'DELETE', headers });
     setSelectedItem(null);
-    fetchItems();
+    fetchItems(page);
   };
 
   const runAI = async (itemId) => {
@@ -111,13 +119,13 @@ export default function InvoiceMatching({ token }) {
     if (!confirm(`Delete ${selected.size} invoices?`)) return;
     await fetch('/api/bulk/invoices/delete', { method: 'POST', headers, body: JSON.stringify({ ids: [...selected] }) });
     setSelected(new Set());
-    fetchItems();
+    fetchItems(page);
   };
 
   const bulkStatus = async (status) => {
     await fetch('/api/bulk/invoices/status', { method: 'POST', headers, body: JSON.stringify({ ids: [...selected], status }) });
     setSelected(new Set());
-    fetchItems();
+    fetchItems(page);
   };
 
   const handleExport = () => { window.open('/api/export/invoices', '_blank'); };
@@ -190,6 +198,7 @@ export default function InvoiceMatching({ token }) {
         </table>
       </div>
 
+      <PaginationControl pagination={pagination} onPageChange={(p) => { setPage(p); setSelected(new Set()); }} />
       <AIResultDisplay result={aiResult} loading={aiLoading} />
 
       {selectedItem && !editItem && (

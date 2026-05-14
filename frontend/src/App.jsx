@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -13,6 +13,19 @@ import Contacts from './pages/Contacts';
 import AuditLog from './pages/AuditLog';
 import Settings from './pages/Settings';
 import Alerts from './pages/Alerts';
+import VendorHealth from './pages/VendorHealth';
+import CreditAdvisor from './pages/CreditAdvisor';
+import DunningLetterGenerator from './pages/DunningLetterGenerator';
+import InvoiceAnomalyDetector from './pages/InvoiceAnomalyDetector';
+import CashFlowForecast from './pages/CashFlowForecast';
+import IntercompanyOptimizer from './pages/IntercompanyOptimizer';
+import TaxCompliance from './pages/TaxCompliance';
+import DiscountDashboard from './pages/DiscountDashboard';
+import AIHistory from './pages/AIHistory';
+import ThreeWayMatching from './pages/ThreeWayMatching';
+import VendorFraudDetection from './pages/VendorFraudDetection';
+import MultiCurrencyFx from './pages/MultiCurrencyFx';
+import ErpMappingSuggest from './pages/ErpMappingSuggest';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -59,6 +72,19 @@ function App() {
           <Route path="/audit-log" element={<AuditLog token={token} />} />
           <Route path="/settings" element={<Settings token={token} user={user} onUpdateUser={handleUpdateUser} />} />
           <Route path="/alerts" element={<Alerts token={token} />} />
+          <Route path="/vendor-health" element={<VendorHealth token={token} />} />
+          <Route path="/credit-advisor" element={<CreditAdvisor token={token} />} />
+          <Route path="/dunning-letter" element={<DunningLetterGenerator token={token} />} />
+          <Route path="/invoice-anomaly" element={<InvoiceAnomalyDetector token={token} />} />
+          <Route path="/cash-forecast" element={<CashFlowForecast token={token} />} />
+          <Route path="/intercompany" element={<IntercompanyOptimizer token={token} />} />
+          <Route path="/tax-compliance" element={<TaxCompliance token={token} />} />
+          <Route path="/discount-dashboard" element={<DiscountDashboard token={token} />} />
+          <Route path="/ai-history" element={<AIHistory token={token} />} />
+          <Route path="/three-way-matching" element={<ThreeWayMatching token={token} />} />
+          <Route path="/vendor-fraud-detection" element={<VendorFraudDetection token={token} />} />
+          <Route path="/multi-currency-fx" element={<MultiCurrencyFx token={token} />} />
+          <Route path="/erp-mapping-suggest" element={<ErpMappingSuggest token={token} />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>

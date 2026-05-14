@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { authenticateToken } = require('../middleware/auth');
+const { sendPaymentDueAlert, sendOverdueAlert } = require('../services/emailService');
 
 // Get all active alerts
 router.get('/', authenticateToken, async (req, res) => {
@@ -114,6 +115,52 @@ router.get('/', authenticateToken, async (req, res) => {
         medium: alerts.filter(a => a.severity === 'medium').length,
       }
     });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/alerts/send-payment-due - send payment due reminders (3/7/14 day)
+router.post('/send-payment-due', authenticateToken, async (req, res) => {
+  const { invoice_id, recipient, days_until_due, send_email } = req.body;
+  if (!invoice_id || !recipient) {
+    return res.status(400).json({ error: 'invoice_id and recipient are required' });
+  }
+  try {
+    const result = await db.query('SELECT * FROM invoices WHERE id = $1', [invoice_id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Invoice not found' });
+    const invoice = result.rows[0];
+    const daysUntilDue = days_until_due || 7;
+
+    if (send_email) {
+      await sendPaymentDueAlert(invoice, recipient, daysUntilDue);
+      return res.json({ message: `Payment due alert sent to ${recipient}`, days_until_due: daysUntilDue });
+    }
+    res.json({ message: 'Alert prepared (send_email was false)', invoice, days_until_due: daysUntilDue });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/alerts/send-overdue - send overdue escalation email
+router.post('/send-overdue', authenticateToken, async (req, res) => {
+  const { invoice_id, recipient, send_email } = req.body;
+  if (!invoice_id || !recipient) {
+    return res.status(400).json({ error: 'invoice_id and recipient are required' });
+  }
+  try {
+    const result = await db.query('SELECT * FROM invoices WHERE id = $1', [invoice_id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Invoice not found' });
+    const invoice = result.rows[0];
+    const daysOverdue = invoice.due_date
+      ? Math.max(0, Math.floor((Date.now() - new Date(invoice.due_date)) / (1000 * 60 * 60 * 24)))
+      : 0;
+
+    if (send_email) {
+      await sendOverdueAlert(invoice, daysOverdue, recipient);
+      return res.json({ message: `Overdue alert sent to ${recipient}`, days_overdue: daysOverdue });
+    }
+    res.json({ message: 'Alert prepared (send_email was false)', invoice, days_overdue: daysOverdue });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

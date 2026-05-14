@@ -45,7 +45,11 @@ export default function CashApplication({ token }) {
   const [selected, setSelected] = useState(new Set());
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
-  const fetchItems = async () => { const res = await fetch('/api/cash-applications', { headers }); setItems(await res.json()); };
+  const fetchItems = async () => {
+    const res = await fetch('/api/cash-applications?limit=200', { headers });
+    const data = await res.json();
+    setItems(data.data || data);
+  };
   useEffect(() => { fetchItems(); }, []);
 
   useEffect(() => {

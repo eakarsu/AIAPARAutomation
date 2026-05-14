@@ -2,11 +2,53 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { authenticateToken } = require('../middleware/auth');
+const { body, validationResult } = require('express-validator');
+
+const agingCreateRules = [
+  body('entity_name').trim().notEmpty().withMessage('entity_name is required').isLength({ max: 200 }),
+  body('entity_type').notEmpty().isIn(['customer', 'vendor']).withMessage('entity_type must be customer or vendor'),
+  body('total_outstanding').notEmpty().isFloat({ min: 0 }).withMessage('total_outstanding must be a non-negative number'),
+  body('credit_limit').optional().isFloat({ min: 0 }),
+  body('risk_rating').optional().isIn(['low', 'medium', 'high', 'critical']),
+];
+
+const agingUpdateRules = [
+  body('entity_name').optional().trim().isLength({ max: 200 }),
+  body('entity_type').optional().isIn(['customer', 'vendor']),
+  body('total_outstanding').optional().isFloat({ min: 0 }),
+  body('credit_limit').optional().isFloat({ min: 0 }),
+  body('risk_rating').optional().isIn(['low', 'medium', 'high', 'critical']),
+];
+
+function validate(req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(422).json({ errors: errors.array() });
+  next();
+}
+
+function paginate(req) {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(200, Math.max(1, parseInt(req.query.limit) || 20));
+  const offset = (page - 1) * limit;
+  return { page, limit, offset };
+}
 
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM aging_records ORDER BY total_outstanding DESC');
-    res.json(result.rows);
+    const { page, limit, offset } = paginate(req);
+    const { entity_type, risk } = req.query;
+    const params = [];
+    let where = 'WHERE 1=1';
+    let idx = 1;
+    if (entity_type) { where += ` AND entity_type = $${idx++}`; params.push(entity_type); }
+    if (risk) { where += ` AND risk_rating = $${idx++}`; params.push(risk); }
+
+    const [rows, countRow] = await Promise.all([
+      db.query(`SELECT * FROM aging_records ${where} ORDER BY total_outstanding DESC LIMIT $${idx++} OFFSET $${idx++}`, [...params, limit, offset]),
+      db.query(`SELECT COUNT(*) FROM aging_records ${where}`, params),
+    ]);
+    const total = parseInt(countRow.rows[0].count);
+    res.json({ data: rows.rows, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -22,7 +64,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, agingCreateRules, validate, async (req, res) => {
   try {
     const { entity_name, entity_type, total_outstanding, current_amount, days_1_30, days_31_60, days_61_90, days_over_90, credit_limit, risk_rating, last_payment_date, avg_days_to_pay } = req.body;
     const result = await db.query(
@@ -36,7 +78,7 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, agingUpdateRules, validate, async (req, res) => {
   try {
     const { entity_name, entity_type, total_outstanding, current_amount, days_1_30, days_31_60, days_61_90, days_over_90, credit_limit, risk_rating, last_payment_date, avg_days_to_pay } = req.body;
     const result = await db.query(

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import DetailModal from '../components/DetailModal';
 import FormModal from '../components/FormModal';
 import AIResultDisplay from '../components/AIResultDisplay';
+import PaginationControl from '../components/PaginationControl';
 
 const detailFields = [
   { key: 'payment_ref', label: 'Payment Ref' },
@@ -35,6 +36,8 @@ const formFields = [
 export default function PaymentReconciliation({ token }) {
   const [items, setItems] = useState([]);
   const [filtered, setFiltered] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 1 });
+  const [page, setPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -45,26 +48,29 @@ export default function PaymentReconciliation({ token }) {
   const [selected, setSelected] = useState(new Set());
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
-  const fetchItems = async () => {
-    const res = await fetch('/api/payments', { headers });
-    setItems(await res.json());
+  const fetchItems = async (p = page) => {
+    const params = new URLSearchParams({ page: p, limit: 20 });
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    const res = await fetch(`/api/payments?${params}`, { headers });
+    const data = await res.json();
+    setItems(data.data || data);
+    if (data.pagination) setPagination(data.pagination);
   };
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => { fetchItems(page); }, [page, statusFilter]);
 
   useEffect(() => {
     let result = items;
     if (search) {
       const s = search.toLowerCase();
-      result = result.filter(i => i.payment_ref.toLowerCase().includes(s) || i.payer_name.toLowerCase().includes(s));
+      result = result.filter(i => (i.payment_ref || '').toLowerCase().includes(s) || (i.payer_name || '').toLowerCase().includes(s));
     }
-    if (statusFilter !== 'all') result = result.filter(i => i.reconciliation_status === statusFilter);
     setFiltered(result);
-  }, [items, search, statusFilter]);
+  }, [items, search]);
 
-  const handleCreate = async (data) => { await fetch('/api/payments', { method: 'POST', headers, body: JSON.stringify(data) }); setShowForm(false); fetchItems(); };
-  const handleUpdate = async (data) => { await fetch(`/api/payments/${data.id}`, { method: 'PUT', headers, body: JSON.stringify(data) }); setEditItem(null); setSelectedItem(null); fetchItems(); };
-  const handleDelete = async (id) => { if (!confirm('Delete this payment?')) return; await fetch(`/api/payments/${id}`, { method: 'DELETE', headers }); setSelectedItem(null); fetchItems(); };
+  const handleCreate = async (data) => { await fetch('/api/payments', { method: 'POST', headers, body: JSON.stringify(data) }); setShowForm(false); fetchItems(page); };
+  const handleUpdate = async (data) => { await fetch(`/api/payments/${data.id}`, { method: 'PUT', headers, body: JSON.stringify(data) }); setEditItem(null); setSelectedItem(null); fetchItems(page); };
+  const handleDelete = async (id) => { if (!confirm('Delete this payment?')) return; await fetch(`/api/payments/${id}`, { method: 'DELETE', headers }); setSelectedItem(null); fetchItems(page); };
 
   const runAI = async (itemId) => {
     setAiLoading(true); setAiResult(null);
@@ -77,8 +83,8 @@ export default function PaymentReconciliation({ token }) {
 
   const toggleSelect = (id, e) => { e.stopPropagation(); const next = new Set(selected); next.has(id) ? next.delete(id) : next.add(id); setSelected(next); };
   const toggleAll = () => { selected.size === filtered.length ? setSelected(new Set()) : setSelected(new Set(filtered.map(i => i.id))); };
-  const bulkDelete = async () => { if (!confirm(`Delete ${selected.size} payments?`)) return; await fetch('/api/bulk/payments/delete', { method: 'POST', headers, body: JSON.stringify({ ids: [...selected] }) }); setSelected(new Set()); fetchItems(); };
-  const bulkStatus = async (status) => { await fetch('/api/bulk/payments/status', { method: 'POST', headers, body: JSON.stringify({ ids: [...selected], status }) }); setSelected(new Set()); fetchItems(); };
+  const bulkDelete = async () => { if (!confirm(`Delete ${selected.size} payments?`)) return; await fetch('/api/bulk/payments/delete', { method: 'POST', headers, body: JSON.stringify({ ids: [...selected] }) }); setSelected(new Set()); fetchItems(page); };
+  const bulkStatus = async (status) => { await fetch('/api/bulk/payments/status', { method: 'POST', headers, body: JSON.stringify({ ids: [...selected], status }) }); setSelected(new Set()); fetchItems(page); };
   const handleExport = () => { window.open('/api/export/payments', '_blank'); };
 
   const getStatusBadge = (status) => {
@@ -144,6 +150,7 @@ export default function PaymentReconciliation({ token }) {
         </table>
       </div>
 
+      <PaginationControl pagination={pagination} onPageChange={(p) => { setPage(p); setSelected(new Set()); }} />
       <AIResultDisplay result={aiResult} loading={aiLoading} />
 
       {selectedItem && !editItem && (
