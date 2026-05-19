@@ -13,6 +13,7 @@ export default function Navbar({ user, onLogout }) {
         <Link to="/contacts" className="navbar-link">Contacts</Link>
         <Link to="/alerts" className="navbar-link">Alerts</Link>
         <Link to="/audit-log" className="navbar-link">Audit Log</Link>
+        <Link to="/custom-views" className="navbar-link">Finance Views</Link>
       </div>
       <div className="navbar-right">
         <span className="navbar-user">

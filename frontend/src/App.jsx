@@ -26,6 +26,7 @@ import ThreeWayMatching from './pages/ThreeWayMatching';
 import VendorFraudDetection from './pages/VendorFraudDetection';
 import MultiCurrencyFx from './pages/MultiCurrencyFx';
 import ErpMappingSuggest from './pages/ErpMappingSuggest';
+import CustomViewsPage from './pages/CustomViewsPage';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -85,6 +86,7 @@ function App() {
           <Route path="/vendor-fraud-detection" element={<VendorFraudDetection token={token} />} />
           <Route path="/multi-currency-fx" element={<MultiCurrencyFx token={token} />} />
           <Route path="/erp-mapping-suggest" element={<ErpMappingSuggest token={token} />} />
+          <Route path="/custom-views" element={<CustomViewsPage token={token} />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>

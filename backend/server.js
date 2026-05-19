@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 const app = express();
@@ -47,7 +47,7 @@ const aiLimiter = rateLimit({
         return `user:${decoded.id || decoded.userId}`;
       } catch (_) {}
     }
-    return req.ip;
+    return ipKeyGenerator(req.ip);
   },
   message: { error: 'AI request limit reached. Maximum 20 AI requests per hour per user.' },
   standardHeaders: true,
@@ -102,3 +102,6 @@ app.use('/api/gap-native-payment-rail-processing-ach', require('./routes/gap_nat
 app.use('/api/gap-multi-currency-fx-handling', require('./routes/gap_multi_currency_fx_handling'));
 app.use('/api/gap-notifications-subsystem', require('./routes/gap_notifications_subsystem'));
 app.use('/api/gap-outbound-webhooks', require('./routes/gap_outbound_webhooks'));
+
+// Custom Views (AP/AR synthesized views: aging report, payment funnel, invoice PDF, approval workflow)
+app.use('/api/custom-views', require('./routes/customViews'));
