@@ -75,6 +75,7 @@ app.use('/api/audit-log', require('./routes/auditLog'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/bulk', require('./routes/bulk'));
+app.use('/api/payment-run-approval-matrix', require('./routes/paymentRunApprovalMatrix'));
 
 // Health check
 app.get('/api/health', (req, res) => {

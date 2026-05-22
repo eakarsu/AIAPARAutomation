@@ -27,7 +27,13 @@ import VendorFraudDetection from './pages/VendorFraudDetection';
 import MultiCurrencyFx from './pages/MultiCurrencyFx';
 import ErpMappingSuggest from './pages/ErpMappingSuggest';
 import CustomViewsPage from './pages/CustomViewsPage';
+import PaymentRunApprovalMatrix from './pages/PaymentRunApprovalMatrix';
 import Navbar from './components/Navbar';
+
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -61,6 +67,10 @@ function App() {
       <Navbar user={user} onLogout={handleLogout} />
       <main className="main-content">
         <Routes>
+        <Route path="/insights/timeline" element={<TimelineView />} />
+        <Route path="/codex/custom-viz" element={<CodexCustomVizFeature />} />
+        <Route path="/codex/operations" element={<CodexOperationsFeature />} />
+
           <Route path="/" element={<Dashboard token={token} />} />
           <Route path="/invoice-matching" element={<InvoiceMatching token={token} />} />
           <Route path="/payment-reconciliation" element={<PaymentReconciliation token={token} />} />
@@ -87,6 +97,7 @@ function App() {
           <Route path="/multi-currency-fx" element={<MultiCurrencyFx token={token} />} />
           <Route path="/erp-mapping-suggest" element={<ErpMappingSuggest token={token} />} />
           <Route path="/custom-views" element={<CustomViewsPage token={token} />} />
+          <Route path="/payment-run-approval-matrix" element={<PaymentRunApprovalMatrix token={token} />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
