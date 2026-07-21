@@ -6,12 +6,6 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleAutofill = () => {
-    setEmail('demo@apar.com');
-    setPassword('demo123');
-    setError('');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -37,10 +31,6 @@ export default function Login({ onLogin }) {
       <div className="login-card">
         <h1>AI AP/AR Automation</h1>
         <p className="subtitle">Intelligent Accounts Payable & Receivable Management</p>
-
-        <button type="button" className="btn btn-autofill" onClick={handleAutofill}>
-          Click to auto-fill demo credentials
-        </button>
 
         {error && <div className="login-error">{error}</div>}
 

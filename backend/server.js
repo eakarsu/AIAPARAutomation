@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+const { legacyPrototypeRoutesEnabled } = require('./config/runtime').validateRuntime();
 
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
@@ -59,6 +60,12 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '5mb' }));
 app.use(generalLimiter);
 
+app.use('/api', (req, res, next) => {
+  const supported = ['/auth', '/health', '/invoice-posting-workflows'];
+  if (legacyPrototypeRoutesEnabled || supported.some((prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`))) return next();
+  return res.status(410).json({ error: 'Legacy prototype route is quarantined', code: 'prototype_route_quarantined' });
+});
+
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/invoices', require('./routes/invoices'));
@@ -76,6 +83,7 @@ app.use('/api/settings', require('./routes/settings'));
 app.use('/api/alerts', require('./routes/alerts'));
 app.use('/api/bulk', require('./routes/bulk'));
 app.use('/api/payment-run-approval-matrix', require('./routes/paymentRunApprovalMatrix'));
+app.use('/api/invoice-posting-workflows', require('./routes/invoicePostingWorkflow'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -86,23 +94,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Backend server running on port ${PORT}`);
 });
 
-// BATCH_00_AUDIT_MOUNTS
-app.use('/api/document-ocr', require('./routes/documentOcr'));
-app.use('/api/vendor-health-monitor', require('./routes/vendorHealthMonitor'));
-app.use('/api/payment-failure-prediction', require('./routes/paymentFailurePrediction'));
-app.use('/api/tax-optimizer', require('./routes/taxOptimizer'));
-app.use('/api/erp-bridge', require('./routes/erpBridge'));
-
-// === Batch 00 Gaps & Frontend Mounts ===
-app.use('/api/gap-limited-ai-3-way-matching', require('./routes/gap_limited_ai_3_way_matching'));
-app.use('/api/gap-ai-vendor-fraud-detection', require('./routes/gap_ai_vendor_fraud_detection'));
-app.use('/api/gap-ai-duplicate-invoice-detection', require('./routes/gap_ai_duplicate_invoice_detection'));
-app.use('/api/gap-ai-gl-coding-suggestion-invoice', require('./routes/gap_ai_gl_coding_suggestion_invoice'));
-app.use('/api/gap-live-erp-connectors-sap-oracle', require('./routes/gap_live_erp_connectors_sap_oracle'));
-app.use('/api/gap-native-payment-rail-processing-ach', require('./routes/gap_native_payment_rail_processing_ach'));
-app.use('/api/gap-multi-currency-fx-handling', require('./routes/gap_multi_currency_fx_handling'));
-app.use('/api/gap-notifications-subsystem', require('./routes/gap_notifications_subsystem'));
-app.use('/api/gap-outbound-webhooks', require('./routes/gap_outbound_webhooks'));
+// Batch-generated stub and gap routes are intentionally not mounted as product APIs.
 
 // Custom Views (AP/AR synthesized views: aging report, payment funnel, invoice PDF, approval workflow)
 app.use('/api/custom-views', require('./routes/customViews'));

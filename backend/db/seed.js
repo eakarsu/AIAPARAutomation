@@ -1,5 +1,9 @@
 const { pool } = require('./index');
 const bcrypt = require('bcryptjs');
+const demoPassword = process.env.DEMO_PASSWORD;
+if (process.env.CONFIRM_DEMO_SEED !== 'YES' || process.env.NODE_ENV === 'production' || !demoPassword || demoPassword.length < 12) {
+  throw new Error('Demo seed requires CONFIRM_DEMO_SEED=YES, non-production NODE_ENV, and DEMO_PASSWORD of at least 12 characters');
+}
 
 async function seed() {
   const client = await pool.connect();
@@ -193,7 +197,7 @@ async function seed() {
     `);
 
     // Seed demo user
-    const hashedPassword = await bcrypt.hash('demo123', 10);
+    const hashedPassword = await bcrypt.hash(demoPassword, 10);
     await client.query(`
       INSERT INTO users (email, password, name, role) VALUES
       ('admin@apar.com', $1, 'Admin User', 'admin'),
@@ -363,8 +367,7 @@ async function seed() {
 
     await client.query('COMMIT');
     console.log('✅ Database seeded successfully!');
-    console.log('   📧 Demo login: demo@apar.com / demo123');
-    console.log('   📧 Admin login: admin@apar.com / demo123');
+    console.log('   Demo accounts loaded; password supplied through DEMO_PASSWORD.');
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('❌ Seed failed:', err.message);
