@@ -61,13 +61,14 @@ app.use(express.json({ limit: '5mb' }));
 app.use(generalLimiter);
 
 app.use('/api', (req, res, next) => {
-  const supported = ['/auth', '/health', '/invoice-posting-workflows'];
+  const supported = ['/auth', '/health', '/invoice-posting-workflows', '/runtime-ai'];
   if (legacyPrototypeRoutesEnabled || supported.some((prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`))) return next();
   return res.status(410).json({ error: 'Legacy prototype route is quarantined', code: 'prototype_route_quarantined' });
 });
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/runtime-ai', require('./routes/runtimeAi'));
 app.use('/api/invoices', require('./routes/invoices'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/dunning', require('./routes/dunning'));
