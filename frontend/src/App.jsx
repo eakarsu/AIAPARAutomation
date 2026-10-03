@@ -29,7 +29,7 @@ import ErpMappingSuggest from './pages/ErpMappingSuggest';
 import CustomViewsPage from './pages/CustomViewsPage';
 import PaymentRunApprovalMatrix from './pages/PaymentRunApprovalMatrix';
 import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
+import AppSidebar from './components/AppSidebar';
 
 import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
 import CodexOperationsFeature from './pages/CodexOperationsFeature';
@@ -64,8 +64,9 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      <Sidebar user={user} onLogout={handleLogout} />
+    <div className="app-container codex-nav-shell">
+      <AppSidebar />
+      <Navbar user={user} onLogout={handleLogout} />
       <main className="main-content">
         <Routes>
         <Route path="/insights/timeline" element={<TimelineView />} />
