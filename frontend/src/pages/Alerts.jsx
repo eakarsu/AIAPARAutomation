@@ -22,7 +22,7 @@ export default function Alerts({ token }) {
     discounts: '/discount-capture',
   };
 
-  let alerts = data.alerts;
+  let alerts = Array.isArray(data?.alerts) ? data.alerts : [];
   if (typeFilter !== 'all') alerts = alerts.filter(a => a.type === typeFilter);
   if (severityFilter !== 'all') alerts = alerts.filter(a => a.severity === severityFilter);
 
@@ -44,19 +44,19 @@ export default function Alerts({ token }) {
       <div className="dashboard-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-label">Total Alerts</div>
-          <div className="stat-value" style={{ color: '#60a5fa' }}>{data.summary.total}</div>
+          <div className="stat-value" style={{ color: '#60a5fa' }}>{data.summary?.total ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Critical</div>
-          <div className="stat-value" style={{ color: '#f87171' }}>{data.summary.critical}</div>
+          <div className="stat-value" style={{ color: '#f87171' }}>{data.summary?.critical ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">High</div>
-          <div className="stat-value" style={{ color: '#fb923c' }}>{data.summary.high}</div>
+          <div className="stat-value" style={{ color: '#fb923c' }}>{data.summary?.high ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">Medium</div>
-          <div className="stat-value" style={{ color: '#fbbf24' }}>{data.summary.medium}</div>
+          <div className="stat-value" style={{ color: '#fbbf24' }}>{data.summary?.medium ?? 0}</div>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default function Alerts({ token }) {
           </div>
         )}
         {alerts.map((alert) => {
-          const sev = severityColors[alert.severity];
+          const sev = severityColors[alert.severity] || severityColors.low;
           return (
             <div
               key={alert.id}

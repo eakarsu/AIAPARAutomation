@@ -44,7 +44,7 @@ router.get('/', authenticateToken, async (req, res) => {
     const params = [];
     let where = 'WHERE 1=1';
     let idx = 1;
-    if (type) { where += ` AND (type = $${idx} OR contact_type = $${idx})`; idx++; params.push(type); }
+    if (type) { where += ` AND type = $${idx++}`; params.push(type); }
     if (status) { where += ` AND status = $${idx++}`; params.push(status); }
     if (search) { where += ` AND (name ILIKE $${idx} OR email ILIKE $${idx} OR company ILIKE $${idx})`; idx++; params.push(`%${search}%`); }
 

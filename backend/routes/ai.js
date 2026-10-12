@@ -111,7 +111,7 @@ router.get('/history', authenticateToken, async (req, res) => {
          FROM ai_results ${whereClauses} ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
         params
       ),
-      db.query(`SELECT COUNT(*) FROM ai_results ${whereClauses}`, module ? [module] : []),
+      db.query(`SELECT COUNT(*) FROM ai_results ${module ? 'WHERE module = $1' : ''}`, module ? [module] : []),
     ]);
 
     const total = parseInt(countRow.rows[0].count);
@@ -732,7 +732,7 @@ router.post('/credit-advisor', authenticateToken, async (req, res) => {
     const customers = await db.query(
       customerId
         ? 'SELECT * FROM contacts WHERE id = $1'
-        : "SELECT * FROM contacts WHERE type = 'customer' OR contact_type = 'customer' LIMIT 25",
+        : "SELECT * FROM contacts WHERE type = 'customer' LIMIT 25",
       customerId ? [customerId] : []
     );
     const aging = await db.query('SELECT * FROM aging_records ORDER BY total_outstanding DESC LIMIT 25').catch(() => ({ rows: [] }));

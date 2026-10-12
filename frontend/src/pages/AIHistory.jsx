@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ai } from '../services/api';
 import PaginationControl from '../components/PaginationControl';
+import AIReport from '../components/AIReport';
 
 const moduleLabels = {
   'invoice-matching': 'Invoice Matching',
@@ -37,7 +38,7 @@ export default function AIHistory() {
       const params = { page: p, limit: 20 };
       if (moduleFilter) params.module = moduleFilter;
       const data = await ai.history(params);
-      setItems(data.data || []);
+      setItems(Array.isArray(data?.data) ? data.data : []);
       if (data.pagination) setPagination(data.pagination);
     } catch (e) {
       setError(e.message);
@@ -143,9 +144,7 @@ export default function AIHistory() {
                 {selected.prompt_summary && (
                   <p style={{ color: '#94a3b8', fontSize: 12, marginBottom: 12 }}>{selected.prompt_summary}</p>
                 )}
-                <pre style={{ whiteSpace: 'pre-wrap', color: '#cbd5e1', fontSize: 12, background: '#0f172a', padding: 12, borderRadius: 6 }}>
-                  {selected.raw_text || JSON.stringify(selected.result, null, 2)}
-                </pre>
+                <AIReport response={selected.result ?? selected.raw_text} title={moduleLabels[selected.module] || selected.module || 'AI analysis'} model={selected.model} tokens={selected.tokens_used} />
               </>
             )}
           </div>

@@ -1,3 +1,4 @@
+import AIReport from '../components/AIReport';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ai, invoices as invoicesApi } from '../services/api';
@@ -115,7 +116,7 @@ export default function DunningLetterGenerator() {
               </div>
             ))
           ) : (
-            <pre style={{ whiteSpace: 'pre-wrap', color: '#e2e8f0' }}>{JSON.stringify(strategy, null, 2)}</pre>
+            <AIReport response={strategy} title="Dunning strategy" />
           )}
         </div>
       )}

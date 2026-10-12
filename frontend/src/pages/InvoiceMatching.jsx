@@ -53,7 +53,7 @@ export default function InvoiceMatching({ token }) {
     if (search) params.set('vendor', search);
     const res = await fetch(`/api/invoices?${params}`, { headers });
     const data = await res.json();
-    setItems(data.data || data);
+    setItems(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []);
     if (data.pagination) setPagination(data.pagination);
   };
 

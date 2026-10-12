@@ -61,7 +61,7 @@ app.use(express.json({ limit: '5mb' }));
 app.use(generalLimiter);
 
 app.use('/api', (req, res, next) => {
-  const supported = ['/auth', '/health', '/invoice-posting-workflows', '/runtime-ai'];
+  const supported = ['/auth', '/health', '/invoice-posting-workflows', '/runtime-ai', '/report-workspace'];
   if (legacyPrototypeRoutesEnabled || supported.some((prefix) => req.path === prefix || req.path.startsWith(`${prefix}/`))) return next();
   return res.status(410).json({ error: 'Legacy prototype route is quarantined', code: 'prototype_route_quarantined' });
 });
@@ -91,6 +91,14 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+
+// Advisory AI reports only; native execution and approval routes stay unchanged.
+const aiWorkspaceSupport = require("./aiWorkspaceAdapters.cjs");
+const aiWorkspaceDatabase = require("./db/index.js").pool;
+app.use('/api/report-workspace', require("./aiWorkspace.cjs").createAIWorkspaceRouter({
+  pool: aiWorkspaceDatabase, authenticateToken: require("./middleware/auth.js").authenticateToken,
+  aiRateLimiter: aiWorkspaceSupport.createWorkspaceLimiter(), features: require("./aiWorkspaceFeatures.json"),
+}));
 app.listen(PORT, () => {
   console.log(`🚀 Backend server running on port ${PORT}`);
 });

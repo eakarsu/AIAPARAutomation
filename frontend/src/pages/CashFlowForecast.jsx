@@ -1,3 +1,4 @@
+import AIReport from '../components/AIReport';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ai } from '../services/api';
@@ -163,7 +164,7 @@ export default function CashFlowForecast() {
           )}
 
           {forecast.raw && (
-            <pre style={{ whiteSpace: 'pre-wrap', color: '#cbd5e1' }}>{forecast.raw}</pre>
+            <AIReport response={forecast.raw} title="CashFlowForecast" />
           )}
         </>
       )}

@@ -1,9 +1,13 @@
+
+import FullAIExamples, { useFullAIExamples } from "../components/FullAIExamples.jsx";
 import React, { useState } from 'react';
 import AIResultDisplay from '../components/AIResultDisplay';
 
 // Multi-currency FX exposure FE — POSTs reportingCurrency + provided rate map.
 // PRODUCT-DECISION: rates are passed in by user (no live FX API in this pass).
 export default function MultiCurrencyFx({ token }) {
+  const fullAIExamples = useFullAIExamples();
+
   const [reportingCurrency, setReportingCurrency] = useState('USD');
   const [rates, setRates] = useState('{\n  "USD": 1.0,\n  "EUR": 1.07,\n  "GBP": 1.25,\n  "JPY": 0.0067\n}');
   const [exposures, setExposures] = useState('');
@@ -33,7 +37,7 @@ export default function MultiCurrencyFx({ token }) {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-full-ai-workspace="MultiCurrencyFx"><FullAIExamples controller={fullAIExamples} disabled={Boolean(loading)} />
       <div className="page-header"><h1>AI Multi-Currency FX Exposure</h1></div>
       <div className="card" style={{ padding: 16 }}>
         <p style={{ marginTop: 0, color: '#555' }}>
@@ -43,15 +47,15 @@ export default function MultiCurrencyFx({ token }) {
         <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr 1fr', gap: 12 }}>
           <div>
             <label>Reporting currency</label>
-            <input type="text" value={reportingCurrency} onChange={(e) => setReportingCurrency(e.target.value.toUpperCase())} style={{ width: '100%' }} />
+            <input type="text" value={reportingCurrency} onChange={(e) => setReportingCurrency(e.target.value.toUpperCase())} style={{ width: '100%' }} data-full-ai-field={fullAIExamples.bind({ current: reportingCurrency, change: (e) => setReportingCurrency(e.target.value.toUpperCase()), label: "reportingCurrency", manual: false, json: false, sample: 'USD' }, "p1-2251", undefined)} />
           </div>
           <div>
             <label>FX rates JSON (currency &rarr; reporting)</label>
-            <textarea rows={8} style={{ width: '100%', fontFamily: 'monospace' }} value={rates} onChange={(e) => setRates(e.target.value)} />
+            <textarea rows={8} style={{ width: '100%', fontFamily: 'monospace' }} value={rates} onChange={(e) => setRates(e.target.value)} data-full-ai-field={fullAIExamples.bind({ current: rates, change: (e) => setRates(e.target.value), label: "rates", manual: false, json: false, sample: '{\n  "USD": 1.0,\n  "EUR": 1.07,\n  "GBP": 1.25,\n  "JPY": 0.0067\n}' }, "p1-2508", undefined)} />
           </div>
           <div>
             <label>Exposures JSON (optional, leave blank to aggregate from DB)</label>
-            <textarea rows={8} style={{ width: '100%', fontFamily: 'monospace' }} value={exposures} onChange={(e) => setExposures(e.target.value)} placeholder='[{"currency":"EUR","amount":50000}]' />
+            <textarea rows={8} style={{ width: '100%', fontFamily: 'monospace' }} value={exposures} onChange={(e) => setExposures(e.target.value)} placeholder='[{"currency":"EUR","amount":50000}]' data-full-ai-field={fullAIExamples.bind({ current: exposures, change: (e) => setExposures(e.target.value), label: "exposures", manual: false, json: false, sample: '' }, "p1-2770", undefined)} />
           </div>
         </div>
         <div style={{ marginTop: 12 }}>

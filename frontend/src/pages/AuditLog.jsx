@@ -15,7 +15,7 @@ export default function AuditLog({ token }) {
     params.set('limit', '100');
     const res = await fetch(`/api/audit-log?${params}`, { headers });
     const data = await res.json();
-    setEntries(data.entries || []);
+    setEntries(Array.isArray(data?.entries) ? data.entries : []);
     setTotal(data.total || 0);
   };
 

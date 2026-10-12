@@ -1,3 +1,4 @@
+import AIReport from '../components/AIReport';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ai } from '../services/api';
@@ -135,7 +136,7 @@ export default function DiscountDashboard() {
             </div>
           )}
 
-          {result.raw && <pre style={{ whiteSpace: 'pre-wrap', color: '#cbd5e1', marginTop: 12 }}>{result.raw}</pre>}
+          {result.raw && <AIReport response={result.raw} title="Discount analysis" />}
         </>
       )}
     </div>

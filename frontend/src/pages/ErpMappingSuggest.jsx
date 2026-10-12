@@ -1,3 +1,5 @@
+
+import FullAIExamples, { useFullAIExamples } from "../components/FullAIExamples.jsx";
 import React, { useState } from 'react';
 import AIResultDisplay from '../components/AIResultDisplay';
 
@@ -5,6 +7,8 @@ import AIResultDisplay from '../components/AIResultDisplay';
 // /api/ai/erp-mapping-suggest. Server introspects local schema if sourceFields
 // is omitted. NEEDS-CREDS for actual ERP connectors — this is planning aid only.
 export default function ErpMappingSuggest({ token }) {
+  const fullAIExamples = useFullAIExamples();
+
   const [targetErp, setTargetErp] = useState('NetSuite');
   const [entityType, setEntityType] = useState('invoice');
   const [aiResult, setAiResult] = useState(null);
@@ -30,7 +34,7 @@ export default function ErpMappingSuggest({ token }) {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-full-ai-workspace="ErpMappingSuggest"><FullAIExamples controller={fullAIExamples} disabled={Boolean(loading)} />
       <div className="page-header"><h1>AI ERP Mapping Suggestions</h1></div>
       <div className="card" style={{ padding: 16 }}>
         <p style={{ marginTop: 0, color: '#555' }}>
@@ -40,7 +44,7 @@ export default function ErpMappingSuggest({ token }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div>
             <label>Target ERP</label>
-            <select value={targetErp} onChange={(e) => setTargetErp(e.target.value)} style={{ width: '100%' }}>
+            <select value={targetErp} onChange={(e) => setTargetErp(e.target.value)} style={{ width: '100%' }} data-full-ai-field={fullAIExamples.bind({ current: targetErp, change: (e) => setTargetErp(e.target.value), label: "targetErp", manual: false, json: false, sample: 'NetSuite' }, "p1-1943", undefined)}>
               <option>NetSuite</option>
               <option>SAP</option>
               <option>Oracle</option>
@@ -50,7 +54,7 @@ export default function ErpMappingSuggest({ token }) {
           </div>
           <div>
             <label>Entity</label>
-            <select value={entityType} onChange={(e) => setEntityType(e.target.value)} style={{ width: '100%' }}>
+            <select value={entityType} onChange={(e) => setEntityType(e.target.value)} style={{ width: '100%' }} data-full-ai-field={fullAIExamples.bind({ current: entityType, change: (e) => setEntityType(e.target.value), label: "entityType", manual: false, json: false, sample: 'invoice' }, "p1-2349", undefined)}>
               <option value="invoice">Invoice</option>
               <option value="payment">Payment</option>
             </select>

@@ -42,7 +42,7 @@ export default function Contacts({ token }) {
   const fetchItems = async () => {
     const res = await fetch('/api/contacts?limit=200', { headers });
     const data = await res.json();
-    setItems(data.data || data);
+    setItems(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []);
   };
 
   useEffect(() => { fetchItems(); }, []);
